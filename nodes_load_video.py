@@ -1,6 +1,6 @@
 """
 📂 CADB 加载视频
-ComfyUI 节点：选择视频文件 → 输出 VideoObject（连线到分析节点）
+ComfyUI 节点：选择视频文件 → 输出路径字符串（可直接连线到分析节点）
 """
 
 import subprocess
@@ -11,7 +11,7 @@ from .objects import VideoObject
 
 
 class CADBLoadVideo:
-    """加载视频，输出 VideoObject 给下游分析节点"""
+    """加载视频，输出路径给分析节点"""
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -21,20 +21,19 @@ class CADBLoadVideo:
             },
         }
 
-    RETURN_TYPES = ("CADB_VIDEO", "STRING")
-    RETURN_NAMES = ("视频", "视频信息")
+    RETURN_TYPES = ("STRING", "STRING")
+    RETURN_NAMES = ("视频路径", "视频信息")
     FUNCTION = "process"
     CATEGORY = "CADB/Video"
 
     def process(self, 视频文件: str = ""):
         path = 视频文件
         if not path or not Path(path).exists():
-            video = VideoObject(path=path)
-            return (video, f"⚠️ 文件不存在: {path}")
+            return (path, f"⚠️ 文件不存在: {path}")
 
         video = self._probe(path)
         info = f"{video.filename} | {video.width}x{video.height} | {video.fps:.1f}fps | {video.duration:.0f}s"
-        return (video, info)
+        return (path, info)
 
     def _probe(self, path: str) -> VideoObject:
         video = VideoObject(path=path)

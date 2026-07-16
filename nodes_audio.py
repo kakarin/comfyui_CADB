@@ -1,25 +1,28 @@
 """
 🎧 CADB 音频分析
-ComfyUI 节点：接收音频对象 → Whisper转录 → Trigger分类 → AudioEvents
-连线模型加载节点获取 Whisper，不连线则跳过转录。
+ComfyUI 节点：接收视频路径 → 提取音频 → Whisper转录 → Trigger分类 → AudioEvents
 """
+
+import subprocess
+import tempfile
+from pathlib import Path
 
 from .objects import AudioEvent
 from .utils import CacheManager, match_trigger
 
 
 class CADBAudioAnalyzer:
-    """音频分析：Whisper 转录 + Trigger 识别"""
+    """音频分析：提取音频 + Whisper 转录 + Trigger 识别"""
 
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "音频": ("CADB_AUDIO", {"tooltip": "来自 ✂️ CADB 音视频分离 的 音频 输出"}),
+                "视频路径": ("STRING", {"multiline": False, "default": "", "placeholder": "视频文件路径，可从 📂 CADB 加载视频 连线"}),
             },
             "optional": {
-                "Whisper模型": ("CADB_WHISPER_MODEL", {"tooltip": "连线 🎙️ CADB 加载Whisper模型，不连线则跳过转录"}),
-                "分段长度": ("FLOAT", {"default": 30.0, "min": 5.0, "max": 120.0, "step": 5.0, "tooltip": "Whisper 分段长度（秒）"}),
+                "Whisper模型": ("CADB_WHISPER_MODEL", {"tooltip": "连线 🎙️ CADB 加载Whisper模型"}),
+                "分段长度": ("FLOAT", {"default": 30.0, "min": 5.0, "max": 120.0, "step": 5.0}),
                 "强制刷新": ("BOOLEAN", {"default": False}),
             },
         }
@@ -34,68 +37,64 @@ class CADBAudioAnalyzer:
 
     def process(
         self,
-        音频=None,
+        视频路径: str = "",
         Whisper模型=None,
         分段长度: float = 30.0,
         强制刷新: bool = False,
     ):
-        audio = 音频
+        path = 视频路径
         whisper_model = Whisper模型
         segment_length = 分段长度
         force_update = 强制刷新
 
-        if audio is None or not audio.path:
-            return ([], "⚠️ 没有音频输入，请连线 ✂️ CADB 音视频分离")
+        if not path or not Path(path).exists():
+            return ([], f"⚠️ 视频不存在: {path}")
 
         has_model = whisper_model is not None
 
         if not force_update:
-            cached = self.cache.get(audio.path, segment_length)
+            cached = self.cache.get(path, segment_length)
             if cached is not None:
-                return (cached, f"✅ 缓存命中: {len(cached)} 个事件")
+                return (cached, f"✅ 缓存: {len(cached)} 事件")
 
-        # Whisper 转录
+        # 提取音频
+        audio_path = self._extract_audio(path)
+
+        # Whisper
         if has_model:
-            segments = self._transcribe(audio.path, whisper_model)
+            segments = self._transcribe(audio_path, whisper_model)
         else:
             segments = []
 
-        # Trigger 分类
         events = self._classify_triggers(segments)
+        self.cache.set(events, path, segment_length)
 
-        self.cache.set(events, audio.path, segment_length)
-        model_tag = "Whisper" if has_model else "占位"
-        return (events, f"✅ [{model_tag}] {len(events)} 个音频事件")
+        tag = "Whisper" if has_model else "占位"
+        return (events, f"✅ [{tag}] {len(events)} 事件")
 
-    def _transcribe(self, audio_path: str, model) -> list[dict]:
+    def _extract_audio(self, path: str) -> str:
+        out = Path(tempfile.mkdtemp(prefix="cadb_aa_")) / "audio.wav"
         try:
-            segments, info = model.transcribe(audio_path, beam_size=5, vad_filter=True)
-        except Exception as e:
-            raise RuntimeError(f"Whisper 转录失败: {e}")
+            subprocess.run(["ffmpeg","-y","-i",path,"-vn","-acodec","pcm_s16le","-ar","16000","-ac","1",str(out)],
+                           capture_output=True, text=True, timeout=120)
+        except: pass
+        return str(out)
 
-        results = []
-        for seg in segments:
-            results.append({
-                "start": seg.start, "end": seg.end, "text": seg.text.strip(),
-                "avg_logprob": seg.avg_logprob,
-            })
-        return results
+    def _transcribe(self, path: str, model) -> list[dict]:
+        segments, _ = model.transcribe(path, beam_size=5, vad_filter=True)
+        return [{"start":s.start,"end":s.end,"text":s.text.strip()} for s in segments]
 
     def _classify_triggers(self, segments: list[dict]) -> list:
-        events = []
-        for seg in segments:
-            text = seg.get("text", "").strip()
-            if not text:
-                continue
-            matched = match_trigger(text)
-            trigger = matched[0]["id"] if matched else ""
-            confidence = 0.8 if matched else 0.0
-            events.append(AudioEvent(
-                start=seg.get("start", 0), end=seg.get("end", 0),
-                trigger=trigger, trigger_confidence=confidence,
-                transcript=text, segment_index=len(events),
-            ))
-        return events
+        evts = []
+        for s in segments:
+            text = s.get("text","").strip()
+            if not text: continue
+            m = match_trigger(text)
+            evts.append(AudioEvent(start=s["start"],end=s["end"],
+                        trigger=m[0]["id"] if m else "",
+                        trigger_confidence=0.8 if m else 0,
+                        transcript=text, segment_index=len(evts)))
+        return evts
 
 
 NODE_CLASS_MAPPINGS = {"CADB_AudioAnalyzer": CADBAudioAnalyzer}
