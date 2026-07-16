@@ -53,6 +53,21 @@ class VideoObject:
 
 
 @dataclass
+class AudioObject:
+    """音频对象 — 从视频分离出的音频流"""
+    path: str = ""
+    sample_rate: int = 16000
+    channels: int = 1
+    duration: float = 0.0
+    format: str = "wav"
+    source_video: str = ""
+
+    def __post_init__(self):
+        if self.path and not Path(self.path).exists():
+            self.path = ""
+
+
+@dataclass
 class FrameObject:
     index: int
     timestamp: float
