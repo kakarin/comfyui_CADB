@@ -1,23 +1,24 @@
 """
 ✂️ CADB 音视频分离
-ComfyUI 节点：接收视频 → FFmpeg 提取音频 → 分别输出视频对象和音频对象
+ComfyUI 节点：接收视频路径（兼容任何视频加载节点） → 提取音频 + 输出视频对象
 """
 
 import subprocess
 import tempfile
+import json
 from pathlib import Path
 
 from .objects import VideoObject, AudioObject
 
 
 class CADBAVSplitter:
-    """从视频中分离音频轨道，输出视频和音频两个对象"""
+    """通用音视频分离：输入视频路径 → FFmpeg 提取音频 → 输出视频对象 + 音频对象"""
 
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "视频": ("CADB_VIDEO", {"tooltip": "来自 📂 CADB 加载视频 的输出"}),
+                "视频路径": ("STRING", {"multiline": False, "default": "", "placeholder": "视频文件路径，可从任何加载视频节点连线"}),
             },
             "optional": {
                 "采样率": ("INT", {"default": 16000, "min": 8000, "max": 48000, "step": 1000}),
@@ -30,23 +31,26 @@ class CADBAVSplitter:
     FUNCTION = "process"
     CATEGORY = "CADB/Video"
 
-    def process(self, 视频=None, 采样率: int = 16000, 声道: str = "单声道"):
-        if 视频 is None:
-            return (VideoObject(), AudioObject(), "⚠️ 没有视频输入")
-
-        video = 视频
+    def process(self, 视频路径: str = "", 采样率: int = 16000, 声道: str = "单声道"):
+        path = 视频路径
         channels = 1 if 声道 == "单声道" else 2
 
-        if not video.path or not Path(video.path).exists():
-            return (video, AudioObject(), f"⚠️ 文件不存在: {video.path}")
+        if not path:
+            return (VideoObject(), AudioObject(), "⚠️ 未输入视频路径")
 
-        # 提取音频到临时文件
+        if not Path(path).exists():
+            return (VideoObject(path=path), AudioObject(), f"⚠️ 文件不存在: {path}")
+
+        # 1. 探测视频信息
+        video = self._probe(path)
+
+        # 2. 提取音频
         out_dir = Path(tempfile.mkdtemp(prefix="cadb_split_"))
-        audio_path = str(out_dir / f"{Path(video.path).stem}.wav")
+        audio_path = str(out_dir / f"{Path(path).stem}.wav")
 
         try:
             subprocess.run(
-                ["ffmpeg", "-y", "-i", video.path,
+                ["ffmpeg", "-y", "-i", path,
                  "-vn", "-acodec", "pcm_s16le",
                  "-ar", str(采样率), "-ac", str(channels),
                  audio_path],
@@ -60,11 +64,37 @@ class CADBAVSplitter:
             sample_rate=采样率,
             channels=channels,
             duration=video.duration,
-            source_video=video.path,
+            source_video=path,
         )
 
-        debug = f"✅ {video.filename} → 音频 {采样率}Hz/{声道}"
+        debug = f"✅ {video.filename} | {video.width}x{video.height} | {video.duration:.0f}s → 音频 {采样率}Hz"
         return (video, audio, debug)
+
+    def _probe(self, path: str) -> VideoObject:
+        video = VideoObject(path=path)
+        try:
+            result = subprocess.run(
+                ["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", path],
+                capture_output=True, text=True, timeout=30,
+            )
+            info = json.loads(result.stdout)
+            for s in info.get("streams", []):
+                if s["codec_type"] == "video":
+                    fps_frac = s.get("r_frame_rate", "0/1")
+                    num, den = (fps_frac.split("/") + ["1"])[:2]
+                    video.fps = float(num) / float(den) if float(den) != 0 else 0
+                    video.width = s.get("width", 0)
+                    video.height = s.get("height", 0)
+                    video.codec = s.get("codec_name", "")
+                elif s["codec_type"] == "audio":
+                    video.audio_codec = s.get("codec_name", "")
+                    video.has_audio = True
+            fmt = info.get("format", {})
+            video.duration = float(fmt.get("duration", 0))
+            video.file_size = int(fmt.get("size", 0))
+        except Exception:
+            pass
+        return video
 
 
 NODE_CLASS_MAPPINGS = {"CADB_AVSplitter": CADBAVSplitter}
