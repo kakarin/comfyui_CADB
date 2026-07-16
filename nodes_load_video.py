@@ -1,6 +1,6 @@
 """
 📂 CADB 加载视频
-ComfyUI 节点：选择视频文件 → 输出路径字符串（可直接连线到分析节点）
+ComfyUI 节点：下拉选择 input 文件夹内的视频 → 输出路径
 """
 
 import subprocess
@@ -9,15 +9,24 @@ from pathlib import Path
 
 from .objects import VideoObject
 
+VIDEO_EXTENSIONS = ["*.mp4", "*.mkv", "*.webm", "*.avi", "*.mov", "*.flv"]
+
 
 class CADBLoadVideo:
-    """加载视频，输出路径给分析节点"""
+    """加载视频：自动扫描 ComfyUI/input/ 目录，下拉选择"""
 
     @classmethod
     def INPUT_TYPES(cls):
+        videos = cls._scan_input_folder()
+        if videos:
+            return {
+                "required": {
+                    "视频文件": (videos, {"default": videos[0]}),
+                },
+            }
         return {
             "required": {
-                "视频文件": ("STRING", {"multiline": False, "default": "", "placeholder": "/path/to/video.mp4"}),
+                "视频文件": ("STRING", {"multiline": False, "default": "", "placeholder": "input/ 无视频，请手动输入完整路径"}),
             },
         }
 
@@ -26,8 +35,43 @@ class CADBLoadVideo:
     FUNCTION = "process"
     CATEGORY = "CADB/Video"
 
+    @classmethod
+    def _scan_input_folder(cls) -> list:
+        """扫描 ComfyUI input 目录下的视频文件"""
+        try:
+            from folder_paths import get_input_directory
+            input_dir = Path(get_input_directory())
+            videos = []
+            for pat in VIDEO_EXTENSIONS:
+                for f in sorted(input_dir.glob(pat)):
+                    videos.append(f.name)
+            return videos
+        except ImportError:
+            pass
+        except Exception:
+            pass
+        return []
+
+    @classmethod
+    def _resolve_path(cls, filename: str) -> str:
+        """解析文件路径：纯文件名则拼上 input 目录"""
+        # 已经是完整路径
+        if Path(filename).is_absolute() or "/" in filename or "\\" in filename:
+            if Path(filename).exists():
+                return filename
+            return filename
+        # 纯文件名 → 拼 input 目录
+        try:
+            from folder_paths import get_input_directory
+            full = str(Path(get_input_directory()) / filename)
+            if Path(full).exists():
+                return full
+        except ImportError:
+            pass
+        return filename
+
     def process(self, 视频文件: str = ""):
-        path = 视频文件
+        path = self._resolve_path(视频文件)
         if not path or not Path(path).exists():
             return (path, f"⚠️ 文件不存在: {path}")
 
