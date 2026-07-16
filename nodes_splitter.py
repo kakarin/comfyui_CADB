@@ -36,7 +36,7 @@ class CADBAVSplitter:
         channels = 1 if 声道 == "单声道" else 2
 
         if not path:
-            return (VideoObject(), AudioObject(), "⚠️ 未输入视频路径")
+            return (VideoObject(path=""), AudioObject(), "⚠️ 未输入视频路径")
 
         if not Path(path).exists():
             return (VideoObject(path=path), AudioObject(), f"⚠️ 文件不存在: {path}")
