@@ -1,0 +1,4 @@
+{
+  "trigger_only": "Classify the following audio transcript into trigger sound categories. Available triggers: whisper, breathing, mouth_sounds, ear_blowing, ear_cleaning, scratch, tapping, brushing, paper, water, plastic, glass, wood, metal, spray, typing, rain, fire, cat_purr.\n\nTranscript: \"{transcript}\"\n\nReturn JSON: {\"triggers\": [{\"id\": \"tapping\", \"confidence\": 0.9}, ...]}",
+  "with_action": "Analyze this audio segment for ASMR analysis. Identify trigger sounds and implied actions.\n\nTranscript: \"{transcript}\"\nSegment duration: {start}s - {end}s\n\nReturn JSON:\n{\n  \"triggers\": [{\"id\": \"whisper\", \"confidence\": 0.95}],\n  \"actions\": [{\"id\": \"tap\", \"confidence\": 0.8}],\n  \"props\": [{\"id\": \"wood_brush\", \"confidence\": 0.85}],\n  \"summary\": \"whispering while tapping wooden brush\"\n}"
+}

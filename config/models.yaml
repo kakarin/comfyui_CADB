@@ -1,0 +1,48 @@
+# CADB 模型配置
+# 所有模型路径支持本地路径或 HuggingFace ID
+
+vision:
+  default: "Qwen/Qwen2.5-VL-7B-Instruct"
+  candidates:
+    - "Qwen/Qwen2.5-VL-7B-Instruct"
+    - "OpenGVLab/InternVL2-8B"
+    - "openbmb/MiniCPM-V-2_6"
+    - "Qwen/Qwen3-VL-8B-Instruct"
+  device: "cuda"
+  dtype: "bfloat16"
+  max_tokens: 512
+  temperature: 0.1
+
+audio:
+  whisper:
+    default: "openai/whisper-large-v3-turbo"
+    candidates:
+      - "openai/whisper-large-v3-turbo"
+      - "openai/whisper-large-v3"
+    device: "cuda"
+    language: "auto"
+    task: "transcribe"
+    chunk_length_s: 30
+  classifier:
+    default: "MIT/ast-finetuned-audioset-10-10-0.4593"
+    device: "cuda"
+
+llm:
+  default: "Qwen/Qwen3-8B"
+  candidates:
+    - "Qwen/Qwen3-8B"
+    - "Qwen/Qwen3-4B"
+    - "meta-llama/Llama-3.1-8B-Instruct"
+  device: "cuda"
+  dtype: "bfloat16"
+  max_tokens: 2048
+  temperature: 0.3
+
+embedding:
+  default: "BAAI/bge-small-zh-v1.5"
+  device: "cpu"
+
+ffmpeg:
+  fps_default: 1
+  scene_threshold: 0.3
+  resize_width: 1280

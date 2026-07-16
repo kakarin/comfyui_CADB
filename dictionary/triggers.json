@@ -1,0 +1,23 @@
+{
+  "triggers": {
+    "whisper": { "name": "耳语", "category": "vocal", "keywords": ["whisper", "whispering", "ささやき"] },
+    "breathing": { "name": "呼吸音", "category": "vocal", "keywords": ["breathing", "breath", "息"] },
+    "mouth_sounds": { "name": "口腔音", "category": "vocal", "keywords": ["mouth", "tongue", "clicking"] },
+    "ear_blowing": { "name": "耳吹气", "category": "wind", "keywords": ["blowing", "blow", "ふー"] },
+    "ear_cleaning": { "name": "掏耳", "category": "tool", "keywords": ["ear cleaning", "ear pick", "耳かき"] },
+    "scratch": { "name": "刮擦", "category": "tool", "keywords": ["scratch", "scratching", "こする"] },
+    "tapping": { "name": "敲击", "category": "tool", "keywords": ["tap", "tapping", "とんとん"] },
+    "brushing": { "name": "刷子", "category": "tool", "keywords": ["brush", "brushing", "ブラシ"] },
+    "paper": { "name": "纸张", "category": "material", "keywords": ["paper", "page", "紙"] },
+    "water": { "name": "水声", "category": "liquid", "keywords": ["water", "drip", "水"] },
+    "plastic": { "name": "塑料", "category": "material", "keywords": ["plastic", "crinkle", "ビニール"] },
+    "glass": { "name": "玻璃/瓶", "category": "material", "keywords": ["glass", "bottle", "ガラス"] },
+    "wood": { "name": "木头", "category": "material", "keywords": ["wood", "木"] },
+    "metal": { "name": "金属", "category": "material", "keywords": ["metal", "金属"] },
+    "spray": { "name": "喷雾", "category": "liquid", "keywords": ["spray", "mist", "スプレー"] },
+    "typing": { "name": "键盘", "category": "device", "keywords": ["keyboard", "typing", "タイピング"] },
+    "rain": { "name": "雨声", "category": "nature", "keywords": ["rain", "雨"] },
+    "fire": { "name": "火焰", "category": "nature", "keywords": ["fire", "crackling", "火"] },
+    "cat_purr": { "name": "猫咕噜", "category": "animal", "keywords": ["purr", "cat", "猫"] }
+  }
+}

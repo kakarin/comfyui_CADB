@@ -1,0 +1,36 @@
+{
+  "tags": {
+    "format": {
+      "real": "真人",
+      "live2d": "Live2D",
+      "3d": "3D",
+      "vrchat": "VRChat",
+      "anime": "动漫",
+      "vtuber": "VTuber"
+    },
+    "genre": {
+      "asmr": "ASMR",
+      "roleplay": "角色扮演",
+      "tutorial": "教学",
+      "gaming": "游戏",
+      "chat": "杂谈",
+      "singing": "唱歌",
+      "cooking": "料理",
+      "review": "评测"
+    },
+    "mood": {
+      "relaxing": "放松",
+      "intense": "紧张",
+      "cute": "可爱",
+      "elegant": "优雅",
+      "comedy": "搞笑",
+      "mysterious": "神秘"
+    },
+    "technique": {
+      "binaural": "双耳录音",
+      "mono": "单声道",
+      "no_talking": "无台词",
+      "visual_trigger": "视觉触发"
+    }
+  }
+}

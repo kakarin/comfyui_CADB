@@ -1,0 +1,75 @@
+{
+  "version": "0.1",
+  "name": "CADB Debug",
+  "description": "Debug 工作流 - 保存中间产物用于调试",
+  "nodes": [
+    {
+      "id": 1,
+      "type": "CADB_VideoAnalyzer",
+      "title": "Video Analyzer (Debug)",
+      "pos": [100, 200],
+      "inputs": {
+        "video_path": "",
+        "profile": "dynamic",
+        "max_fps": 3.0,
+        "scene_detection": true,
+        "debug": true,
+        "force_update": true
+      }
+    },
+    {
+      "id": 2,
+      "type": "CADB_AudioAnalyzer",
+      "title": "Audio Analyzer (Debug)",
+      "pos": [400, 200],
+      "inputs": {
+        "video_path": "",
+        "segment_length": 15.0,
+        "whisper_model": "large-v3-turbo",
+        "debug": true,
+        "force_update": true
+      }
+    },
+    {
+      "id": 3,
+      "type": "CADB_TimelineFusion",
+      "title": "Timeline Fusion (Debug)",
+      "pos": [700, 200],
+      "inputs": {
+        "merge_gap_sec": 1.0,
+        "min_confidence": 0.0,
+        "force_update": true
+      }
+    },
+    {
+      "id": 4,
+      "type": "CADB_KnowledgeBuilder",
+      "title": "Knowledge Builder",
+      "pos": [1000, 200],
+      "inputs": {
+        "force_update": true
+      }
+    },
+    {
+      "id": 5,
+      "type": "CADB_ReportGenerator",
+      "title": "Report Generator",
+      "pos": [1300, 200],
+      "inputs": {
+        "output_formats": "all"
+      }
+    }
+  ],
+  "links": [
+    {"from": 1, "from_slot": 0, "to": 3, "to_slot": "frame_events"},
+    {"from": 2, "from_slot": 0, "to": 3, "to_slot": "audio_events"},
+    {"from": 3, "from_slot": 0, "to": 4, "to_slot": "timeline"},
+    {"from": 4, "from_slot": 0, "to": 5, "to_slot": "knowledge"}
+  ],
+  "config": {
+    "profile": "dynamic",
+    "cache": false,
+    "save_debug_images": true,
+    "save_debug_audio": true
+  }
+}

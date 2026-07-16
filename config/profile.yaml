@@ -1,0 +1,29 @@
+# CADB 运行配置
+project:
+  name: "CADB"
+  version: "v0.1"
+  author: "Personal Project"
+
+paths:
+  input_video: "input/video"
+  input_batch: "input/batch"
+  output_json: "output/json"
+  output_markdown: "output/markdown"
+  output_timeline: "output/timeline"
+  output_tags: "output/tags"
+  output_debug: "output/debug"
+  cache: "cache"
+  dictionary: "dictionary"
+  prompts: "prompts"
+
+cache:
+  enabled: true
+  max_age_days: 7
+  max_size_gb: 50
+  cleanup_on_start: false
+
+batch:
+  max_workers: 2
+  retry_failed: true
+  max_retries: 3
+  resume: true

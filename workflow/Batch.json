@@ -1,0 +1,73 @@
+{
+  "version": "0.1",
+  "name": "CADB Batch",
+  "description": "批量处理工作流 - 遍历整个目录",
+  "nodes": [
+    {
+      "id": 1,
+      "type": "CADB_VideoAnalyzer",
+      "title": "Video Analyzer",
+      "pos": [100, 200],
+      "inputs": {
+        "video_path": "",
+        "profile": "standard",
+        "max_fps": 2.0,
+        "scene_detection": true
+      }
+    },
+    {
+      "id": 2,
+      "type": "CADB_AudioAnalyzer",
+      "title": "Audio Analyzer",
+      "pos": [400, 200],
+      "inputs": {
+        "video_path": "",
+        "segment_length": 30.0,
+        "whisper_model": "large-v3-turbo"
+      }
+    },
+    {
+      "id": 3,
+      "type": "CADB_TimelineFusion",
+      "title": "Timeline Fusion",
+      "pos": [700, 200],
+      "inputs": {
+        "merge_gap_sec": 1.0,
+        "min_confidence": 0.0
+      }
+    },
+    {
+      "id": 4,
+      "type": "CADB_KnowledgeBuilder",
+      "title": "Knowledge Builder",
+      "pos": [1000, 200],
+      "inputs": {}
+    },
+    {
+      "id": 5,
+      "type": "CADB_ReportGenerator",
+      "title": "Report Generator",
+      "pos": [1300, 200],
+      "inputs": {
+        "output_formats": "all"
+      }
+    }
+  ],
+  "links": [
+    {"from": 1, "from_slot": 0, "to": 3, "to_slot": "frame_events"},
+    {"from": 2, "from_slot": 0, "to": 3, "to_slot": "audio_events"},
+    {"from": 3, "from_slot": 0, "to": 4, "to_slot": "timeline"},
+    {"from": 4, "from_slot": 0, "to": 5, "to_slot": "knowledge"}
+  ],
+  "config": {
+    "profile": "standard",
+    "fps": 0.5,
+    "cache": true,
+    "batch": {
+      "max_workers": 2,
+      "retry_failed": true,
+      "max_retries": 3,
+      "resume": true
+    }
+  }
+}

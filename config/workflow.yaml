@@ -1,0 +1,45 @@
+# CADB 工作流配置
+
+defaults:
+  cache: true
+  force_update: false
+  debug: false
+  save_intermediate: false
+
+profiles:
+  fast:
+    description: "5秒一帧，适合长视频"
+    fps: 0.2
+    scene_detection: false
+    audio_segment_length: 60
+
+  standard:
+    description: "2秒一帧，默认"
+    fps: 0.5
+    scene_detection: true
+    audio_segment_length: 30
+
+  high_quality:
+    description: "1 FPS，适合 ASMR"
+    fps: 1.0
+    scene_detection: true
+    audio_segment_length: 15
+
+  dynamic:
+    description: "根据动作自动调整采样率"
+    fps: "auto"
+    scene_detection: true
+    audio_segment_length: 30
+    dynamic_params:
+      min_fps: 0.2
+      max_fps: 3.0
+      motion_threshold: 0.15
+
+output:
+  formats:
+    - json
+    - markdown
+    - timeline_json
+    - tags_json
+  save_debug_images: false
+  save_debug_audio: false

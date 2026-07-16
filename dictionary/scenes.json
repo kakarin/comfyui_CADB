@@ -1,0 +1,13 @@
+{
+  "scenes": {
+    "front_view": { "name": "正面", "description": "人物正面朝向镜头" },
+    "close_up": { "name": "特写", "description": "手部/道具近距离特写" },
+    "hand_focus": { "name": "手部", "description": "以手部动作为主" },
+    "dual_ear": { "name": "双耳", "description": "双耳麦克风视角" },
+    "side_view": { "name": "侧面", "description": "人物侧身" },
+    "top_down": { "name": "俯视", "description": "俯拍道具" },
+    "full_body": { "name": "全身", "description": "全身镜头" },
+    "dark": { "name": "暗光", "description": "低光照环境" },
+    "outdoor": { "name": "室外", "description": "室外场景" }
+  }
+}

@@ -1,0 +1,4 @@
+{
+  "markdown_cn": "根据以下数据生成Markdown报告：\n\n视频：{video_name}\n时长：{duration}\n摘要：{summary}\n时间轴：{timeline}\n统计：{statistics}\n\n包含：标题、基本信息、摘要、时间轴表格、统计表格、标签。",
+  "prompt_gen": "Generate an AI image prompt based on the following ASMR analysis. Focus on the dominant triggers, props, and atmosphere.\n\nTriggers: {triggers}\nActions: {actions}\nProps: {props}\n\nGenerate a descriptive prompt suitable for Stable Diffusion or similar image generation models."
+}

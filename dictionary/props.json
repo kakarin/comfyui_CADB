@@ -1,0 +1,19 @@
+{
+  "props": {
+    "wood_brush": { "name": "木刷", "category": "brush", "material": "wood" },
+    "makeup_brush": { "name": "化妆刷", "category": "brush", "material": "synthetic" },
+    "ear_pick": { "name": "掏耳勺", "category": "tool", "material": "metal/bamboo" },
+    "paper": { "name": "纸张", "category": "material", "material": "paper" },
+    "glass_bottle": { "name": "玻璃瓶", "category": "container", "material": "glass" },
+    "plastic_bag": { "name": "塑料袋", "category": "material", "material": "plastic" },
+    "sponge": { "name": "海绵", "category": "material", "material": "foam" },
+    "spray_bottle": { "name": "喷雾瓶", "category": "container", "material": "plastic" },
+    "towel": { "name": "毛巾", "category": "fabric", "material": "cotton" },
+    "cotton_swab": { "name": "棉签", "category": "tool", "material": "cotton/paper" },
+    "tuning_fork": { "name": "音叉", "category": "instrument", "material": "metal" },
+    "mic_cover": { "name": "麦克风套", "category": "accessory", "material": "foam/fabric" },
+    "scissors": { "name": "剪刀", "category": "tool", "material": "metal" },
+    "comb": { "name": "梳子", "category": "tool", "material": "plastic/wood" },
+    "candle": { "name": "蜡烛", "category": "object", "material": "wax" }
+  }
+}

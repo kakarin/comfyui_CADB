@@ -1,0 +1,19 @@
+{
+  "actions": {
+    "pick_up": { "name": "拿起", "description": "从桌面/画面外拿起道具" },
+    "put_down": { "name": "放下", "description": "将道具放下" },
+    "brush": { "name": "刷/涂抹", "description": "用刷子类道具进行涂抹动作" },
+    "tap": { "name": "敲击", "description": "用手指或工具敲击物体" },
+    "rub": { "name": "摩擦", "description": "摩擦物体表面" },
+    "scratch": { "name": "刮擦", "description": "用指甲或工具刮擦" },
+    "rotate": { "name": "旋转", "description": "旋转道具" },
+    "hold_up": { "name": "展示", "description": "将道具举到镜头前展示" },
+    "squeeze": { "name": "挤压", "description": "挤压道具（瓶子/袋子）" },
+    "pour": { "name": "倒入/倒出", "description": "倒液体" },
+    "shake": { "name": "摇晃", "description": "摇晃道具" },
+    "close_up": { "name": "靠近", "description": "将道具靠近麦克风/镜头" },
+    "move_away": { "name": "远离", "description": "将道具远离" },
+    "switch_hands": { "name": "换手", "description": "左右手交换道具" },
+    "idle": { "name": "静止", "description": "无明显动作" }
+  }
+}

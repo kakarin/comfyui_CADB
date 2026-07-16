@@ -1,0 +1,69 @@
+{
+  "version": "0.1",
+  "name": "CADB High Quality",
+  "description": "高质量工作流 - 1 FPS，适合 ASMR 精细分析",
+  "nodes": [
+    {
+      "id": 1,
+      "type": "CADB_VideoAnalyzer",
+      "title": "Video Analyzer (HQ)",
+      "pos": [100, 200],
+      "inputs": {
+        "video_path": "",
+        "profile": "high_quality",
+        "max_fps": 3.0,
+        "scene_detection": true,
+        "debug": false
+      }
+    },
+    {
+      "id": 2,
+      "type": "CADB_AudioAnalyzer",
+      "title": "Audio Analyzer (HQ)",
+      "pos": [400, 200],
+      "inputs": {
+        "video_path": "",
+        "segment_length": 15.0,
+        "whisper_model": "large-v3"
+      }
+    },
+    {
+      "id": 3,
+      "type": "CADB_TimelineFusion",
+      "title": "Timeline Fusion",
+      "pos": [700, 200],
+      "inputs": {
+        "merge_gap_sec": 0.5,
+        "min_confidence": 0.0
+      }
+    },
+    {
+      "id": 4,
+      "type": "CADB_KnowledgeBuilder",
+      "title": "Knowledge Builder",
+      "pos": [1000, 200],
+      "inputs": {}
+    },
+    {
+      "id": 5,
+      "type": "CADB_ReportGenerator",
+      "title": "Report Generator",
+      "pos": [1300, 200],
+      "inputs": {
+        "output_formats": "all"
+      }
+    }
+  ],
+  "links": [
+    {"from": 1, "from_slot": 0, "to": 3, "to_slot": "frame_events"},
+    {"from": 2, "from_slot": 0, "to": 3, "to_slot": "audio_events"},
+    {"from": 3, "from_slot": 0, "to": 4, "to_slot": "timeline"},
+    {"from": 4, "from_slot": 0, "to": 5, "to_slot": "knowledge"}
+  ],
+  "config": {
+    "profile": "high_quality",
+    "fps": 1.0,
+    "cache": true,
+    "save_debug_images": true
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "presets": {
+    "real": {
+      "name": "真人 ASMR",
+      "vision_prompt": "Analyze this real-person ASMR video frame. Focus on hand movements, props near microphone, and facial expressions.",
+      "audio_prompt": "Focus on real-person vocal triggers: whisper, mouth sounds, breathing. Also detect physical object sounds.",
+      "tags": ["real", "asmr", "human"]
+    },
+    "live2d": {
+      "name": "Live2D VTuber",
+      "vision_prompt": "Analyze this Live2D VTuber frame. Note character expressions, background changes, and on-screen actions.",
+      "audio_prompt": "Standard VTuber audio analysis. Detect voice, sound effects, BGM segments.",
+      "tags": ["live2d", "vtuber", "2d"]
+    },
+    "3d": {
+      "name": "3D VTuber",
+      "vision_prompt": "Analyze this 3D VTuber frame. Note camera angles, character poses, scene props, lighting.",
+      "audio_prompt": "3D VTuber audio. Detect spatial audio cues, voice, environmental sounds.",
+      "tags": ["3d", "vtuber", "3d_model"]
+    },
+    "vrchat": {
+      "name": "VRChat",
+      "vision_prompt": "Analyze this VRChat frame. Note avatar actions, world environment, UI elements.",
+      "audio_prompt": "VRChat audio. Detect voice chat, world sounds, music players.",
+      "tags": ["vrchat", "social_vr"]
+    },
+    "tutorial": {
+      "name": "教学视频",
+      "vision_prompt": "Analyze this tutorial video frame. Focus on demonstrated actions, tools used, text/annotations on screen.",
+      "audio_prompt": "Tutorial audio. Focus on spoken instructions, demonstration sounds.",
+      "tags": ["tutorial", "educational"]
+    },
+    "gaming": {
+      "name": "游戏视频",
+      "vision_prompt": "Analyze this gaming video frame. Note game UI, character actions, scene type, on-screen events.",
+      "audio_prompt": "Gaming audio. Detect game sounds, voice commentary, background music.",
+      "tags": ["gaming", "gameplay"]
+    }
+  }
+}

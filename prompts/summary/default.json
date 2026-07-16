@@ -1,0 +1,4 @@
+{
+  "summary_cn": "根据以下视频分析数据生成中文摘要：\n\n触发音：{triggers}\n动作：{actions}\n道具：{props}\n场景：{scenes}\n总事件数：{total_events}\n视频时长：{duration}\n\n请生成简洁摘要，突出主要触发音和动作模式。",
+  "summary_en": "Generate a concise summary of this ASMR video analysis:\n\nTriggers: {triggers}\nActions: {actions}\nProps: {props}\nScenes: {scenes}\nTotal events: {total_events}\nDuration: {duration}\n\nFocus on the dominant triggers and action patterns."
+}
