@@ -63,8 +63,11 @@ class CADBVideoAnalyzer:
     FUNCTION = "process"
     CATEGORY = "CADB/Video"
 
-    DEFAULT_PROMPT = """Analyze this frame. Identify action, props, scene.
-Return ONLY JSON: {"action": "idle", "props": [], "scene": "front_view"}"""
+    DEFAULT_PROMPT = """请分析这张视频帧，用中文回答：
+1. 动作类型（拿起、放下、刷/涂抹、敲击、摩擦、刮擦、旋转、展示、挤压、摇晃、靠近、远离、跳舞、摆姿势、静止）
+2. 可见道具（列出所有你能看到的物品，用中文描述）
+3. 场景类型（正面、特写、手部、双耳、侧面、俯视、全身、暗光、室外、舞台/演播室）
+只返回 JSON 格式：{"action": "静止", "props": ["道具1", "道具2"], "scene": "正面"}"""
 
     def __init__(self):
         self.cache = CacheManager("VideoAnalyzer")

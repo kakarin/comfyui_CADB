@@ -21,7 +21,10 @@ class CADBKnowledgeBuilder:
     ACTION_CN = {
         "brush": "刷/涂抹", "tap": "敲击", "rub": "摩擦", "scratch": "刮擦",
         "hold_up": "展示", "squeeze": "挤压", "pick_up": "拿起", "put_down": "放下",
-        "close_up": "靠近", "idle": "静止",
+        "close_up": "靠近", "idle": "静止", "静止": "静止",
+        "posing": "摆姿势", "摆姿势": "摆姿势",
+        "dancing": "跳舞", "跳舞": "跳舞",
+        "跳舞": "跳舞", "摆姿势": "摆姿势",
     }
 
     @classmethod
