@@ -142,6 +142,7 @@ class CADBLoadVisionModelGGUF:
                 model_path=model_path, chat_handler=mmproj,
                 n_ctx=n_ctx, n_gpu_layers=n_gpu_layers,
                 verbose=False, logits_all=False, embedding=False,
+                flash_attn=True,
             )
             self._loaded_models[cache_key] = model
             info = f"✅ [{model_family}] {Path(model_path).name} | GPU:{n_gpu_layers}"

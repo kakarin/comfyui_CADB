@@ -55,6 +55,7 @@ class CADBVideoAnalyzer:
                 "最大帧率": ("FLOAT", {"default": 3.0, "min": 0.1, "max": 30.0, "step": 0.1}),
                 "场景检测": ("BOOLEAN", {"default": True}),
                 "强制刷新": ("BOOLEAN", {"default": False}),
+                "批处理帧数": ("INT", {"default": 3, "min": 1, "max": 10, "tooltip": "一次VLM调用分析几帧，越大越快但可能丢失细节"}),
             },
         }
 
@@ -69,6 +70,13 @@ class CADBVideoAnalyzer:
 3. 场景类型（正面、特写、手部、双耳、侧面、俯视、全身、暗光、室外、舞台/演播室）
 只返回 JSON 格式：{"action": "静止", "props": ["道具1", "道具2"], "scene": "正面"}"""
 
+    BATCH_PROMPT = """请分析以下{count}张连续视频帧，每帧返回一个JSON：
+动作类型：拿起、放下、刷/涂抹、敲击、摩擦、刮擦、旋转、展示、挤压、摇晃、靠近、远离、跳舞、摆姿势、静止
+场景类型：正面、特写、手部、双耳、侧面、俯视、全身、暗光、室外、舞台/演播室
+
+只返回 JSON 数组：
+[{"action": "静止", "props": ["道具"], "scene": "正面"}, ...]"""
+
     def __init__(self):
         self.cache = CacheManager("VideoAnalyzer")
 
@@ -81,6 +89,7 @@ class CADBVideoAnalyzer:
         最大帧率: float = 3.0,
         场景检测: bool = True,
         强制刷新: bool = False,
+        批处理帧数: int = 3,
     ):
         path = 视频路径
         profile = 采样模式
@@ -106,7 +115,7 @@ class CADBVideoAnalyzer:
         frames = self._extract_frames(path, target_fps, scene_detection)
 
         if has_model:
-            frame_events = self._infer_frames(frames, vision_model, vision_prompt)
+            frame_events = self._infer_frames(frames, vision_model, vision_prompt, 批处理帧数)
         else:
             frame_events = [FrameEvent(timestamp=f.timestamp, action="idle", frame_index=f.index) for f in frames]
 
@@ -144,21 +153,41 @@ class CADBVideoAnalyzer:
             self._last_error = f"抽帧结果为空 (ffmpeg={ffmpeg})"
         return frames
 
-    def _infer_frames(self, frames, vm, prompt):
+    def _infer_frames(self, frames, vm, prompt, batch_size=3):
         model, backend, cfg = vm
-        mt = cfg.get("max_tokens", 512)
+        mt = cfg.get("max_tokens", 128)
         temp = cfg.get("temperature", 0.1)
         prompt = prompt or self.DEFAULT_PROMPT
         evts = []
-        for f in frames:
+
+        # 批量推理：每 batch_size 帧合并成一次 VLM 调用
+        for i in range(0, len(frames), batch_size):
+            batch = frames[i:i + batch_size]
             try:
-                if backend == "gguf":
-                    e = self._infer_gguf(f.path, model, prompt, mt, temp)
+                if len(batch) == 1:
+                    # 单帧走快速路径
+                    if backend == "gguf":
+                        e = self._infer_gguf(batch[0].path, model, prompt, mt, temp)
+                    else:
+                        e = self._infer_hf(batch[0].path, model, backend, prompt, mt, temp)
+                    e.timestamp = batch[0].timestamp; e.frame_index = batch[0].index
+                    evts.append(e)
                 else:
-                    e = self._infer_hf(f.path, model, backend, prompt, mt, temp)
-                e.timestamp = f.timestamp; e.frame_index = f.index; evts.append(e)
+                    # 多帧批量推理
+                    batch_evts = self._infer_batch_gguf(batch, model, mt, temp) if backend == "gguf" else []
+                    if batch_evts:
+                        for j, e in enumerate(batch_evts):
+                            e.timestamp = batch[j].timestamp
+                            e.frame_index = batch[j].index
+                            evts.append(e)
+                    else:
+                        # 回退单帧
+                        for f in batch:
+                            evts.append(FrameEvent(timestamp=f.timestamp, action="idle", frame_index=f.index))
             except Exception as ex:
-                evts.append(FrameEvent(timestamp=f.timestamp, action="idle", frame_index=f.index, raw_response=f"error:{ex}"))
+                for f in batch:
+                    evts.append(FrameEvent(timestamp=f.timestamp, action="idle", frame_index=f.index, raw_response=f"error:{ex}"))
+
         return evts
 
     def _infer_hf(self, img, model, processor, prompt, mt, temp):
@@ -197,6 +226,28 @@ class CADBVideoAnalyzer:
         raw = result["choices"][0]["message"]["content"]
         return self._parse(raw)
 
+    def _infer_batch_gguf(self, batch, model, mt, temp):
+        """GGUF 批量多帧推理：一次调用分析多帧"""
+        import base64
+        batch_prompt = self.BATCH_PROMPT.format(count=len(batch))
+
+        # 构建多图消息
+        content = [{"type": "text", "text": batch_prompt}]
+        for f in batch:
+            with open(f.path, "rb") as img_file:
+                img_b64 = base64.b64encode(img_file.read()).decode()
+            content.append({"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{img_b64}"}})
+
+        messages = [{"role": "user", "content": content}]
+
+        result = model.create_chat_completion(
+            messages=messages,
+            max_tokens=mt * len(batch),  # 更多token给多帧
+            temperature=temp if temp > 0 else 0.0,
+        )
+        raw = result["choices"][0]["message"]["content"]
+        return self._parse_array(raw, len(batch))
+
     def _parse(self, raw):
         js = raw
         if "```json" in raw: js = raw.split("```json")[1].split("```")[0]
@@ -204,9 +255,37 @@ class CADBVideoAnalyzer:
         elif "{" in raw: js = raw[raw.index("{"):raw.rindex("}")+1]
         try: d = json.loads(js.strip())
         except: return FrameEvent(timestamp=0, action="idle", raw_response=raw)
-        return FrameEvent(timestamp=0, action=d.get("action","idle"), action_confidence=d.get("action_confidence",0.8),
-                          props=d.get("props",[]), scene=d.get("scene","front_view"),
+        return FrameEvent(timestamp=0, action=d.get("action","静止"), action_confidence=d.get("action_confidence",0.8),
+                          props=d.get("props",[]), scene=d.get("scene","正面"),
                           tags=d.get("tags",[]), raw_response=raw)
+
+    def _parse_array(self, raw, expected_count):
+        """解析批量 JSON 数组响应"""
+        js = raw
+        if "```json" in raw: js = raw.split("```json")[1].split("```")[0]
+        elif "```" in raw: js = raw.split("```")[1].split("```")[0]
+        elif "[" in raw: js = raw[raw.index("["):raw.rindex("]") + 1]
+
+        try:
+            arr = json.loads(js.strip())
+            if isinstance(arr, list):
+                evts = []
+                for item in arr[:expected_count]:
+                    if isinstance(item, dict):
+                        evts.append(FrameEvent(
+                            timestamp=0, action=item.get("action", "静止"),
+                            props=item.get("props", []), scene=item.get("scene", "正面"),
+                            raw_response=raw,
+                        ))
+                # 补齐不够的帧
+                while len(evts) < expected_count:
+                    evts.append(FrameEvent(timestamp=0, action="静止", raw_response=raw))
+                return evts
+        except json.JSONDecodeError:
+            pass
+
+        # 解析失败，全部返回 idle
+        return [FrameEvent(timestamp=0, action="静止", raw_response=raw) for _ in range(expected_count)]
 
 
 NODE_CLASS_MAPPINGS = {"CADB_VideoAnalyzer": CADBVideoAnalyzer}
