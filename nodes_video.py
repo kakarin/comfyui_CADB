@@ -56,6 +56,7 @@ class CADBVideoAnalyzer:
                 "场景检测": ("BOOLEAN", {"default": True}),
                 "强制刷新": ("BOOLEAN", {"default": False}),
                 "批处理帧数": ("INT", {"default": 3, "min": 1, "max": 10, "tooltip": "一次VLM调用分析几帧，越大越快但可能丢失细节"}),
+                "缩放宽度": ("INT", {"default": 640, "min": 320, "max": 1920, "step": 64, "tooltip": "抽帧缩放宽度，越小越快，推荐640"}),
             },
         }
 
@@ -90,6 +91,7 @@ class CADBVideoAnalyzer:
         场景检测: bool = True,
         强制刷新: bool = False,
         批处理帧数: int = 3,
+        缩放宽度: int = 640,
     ):
         path = 视频路径
         profile = 采样模式
@@ -112,7 +114,7 @@ class CADBVideoAnalyzer:
 
         fps_map = {"fast": 0.2, "standard": 0.5, "high_quality": 1.0, "dynamic": min(max_fps, 3.0)}
         target_fps = fps_map.get(profile, 0.5)
-        frames = self._extract_frames(path, target_fps, scene_detection)
+        frames = self._extract_frames(path, target_fps, scene_detection, 缩放宽度)
 
         if has_model:
             frame_events = self._infer_frames(frames, vision_model, vision_prompt, 批处理帧数)
@@ -127,10 +129,10 @@ class CADBVideoAnalyzer:
             dbg = f"❌ {self._last_error}"
         return (frame_events, dbg)
 
-    def _extract_frames(self, path: str, fps: float, scene: bool) -> list:
+    def _extract_frames(self, path: str, fps: float, scene: bool, scale_width: int = 640) -> list:
         ffmpeg = _find_ffmpeg()
         d = Path(tempfile.mkdtemp(prefix="cadb_vf_"))
-        vf = f"fps={fps},scale=1280:-1"
+        vf = f"fps={fps},scale={scale_width}:-1"
         if scene: vf += ",select='gte(scene,0.3)'"
         try:
             result = subprocess.run(
