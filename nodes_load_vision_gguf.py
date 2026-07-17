@@ -122,9 +122,9 @@ class CADBLoadVisionModelGGUF:
         temperature = 温度
 
         if not model_path or not Path(model_path).exists():
-            return ((None, None, {}), f"❌ 模型不存在: {model_path}")
+            return ((None, None, {}), f"❌ 模型不存在: {model_path}\n(原始输入: {GGUF模型})")
         if not mmproj_path or not Path(mmproj_path).exists():
-            return ((None, None, {}), f"❌ 投影模型不存在: {mmproj_path}")
+            return ((None, None, {}), f"❌ 投影不存在: {mmproj_path}\n(原始输入: {投影模型})")
 
         model_family = self._detect_model_family(model_path)
         cache_key = f"{model_path}_{mmproj_path}_{n_gpu_layers}"
