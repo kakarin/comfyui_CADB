@@ -55,7 +55,7 @@ class CADBVideoAnalyzer:
                 "最大帧率": ("FLOAT", {"default": 3.0, "min": 0.1, "max": 30.0, "step": 0.1}),
                 "场景检测": ("BOOLEAN", {"default": True}),
                 "强制刷新": ("BOOLEAN", {"default": False}),
-                "批处理帧数": ("INT", {"default": 3, "min": 1, "max": 10, "tooltip": "一次VLM调用分析几帧，越大越快但可能丢失细节"}),
+                "批处理帧数": ("INT", {"default": 1, "min": 1, "max": 10, "tooltip": "实验性：>1批量推理，不稳定时用1"}),
                 "缩放宽度": ("INT", {"default": 640, "min": 320, "max": 1920, "step": 64, "tooltip": "抽帧缩放宽度，越小越快，推荐640"}),
             },
         }
