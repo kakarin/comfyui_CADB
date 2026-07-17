@@ -131,7 +131,7 @@ class CADBAudioAnalyzer:
                 if audio_np.ndim > 1:
                     audio_np = audio_np.mean(axis=1)
                 audio_np = audio_np.astype(np.float32)
-                result = model.transcribe(audio_np, language=None, fp16=True)
+                result = model.transcribe(audio_np, language=None, fp16=False)
                 segments = result.get("segments", [])
             else:
                 segments_iter, info = model.transcribe(path, beam_size=5, vad_filter=True)
