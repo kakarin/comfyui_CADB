@@ -110,6 +110,7 @@ class CacheManager:
         key = self._make_key(*args, **kwargs)
         path = self.cache_dir / f"{key}.pkl"
         try:
+            self.cache_dir.mkdir(parents=True, exist_ok=True)
             with open(path, 'wb') as f:
                 pickle.dump(value, f)
         except Exception as e:
