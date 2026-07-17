@@ -1,7 +1,7 @@
 """
 🔮 CADB 加载视觉模型 (GGUF)
 ComfyUI 节点：加载本地 GGUF 格式 VLM → 输出给视频分析节点
-支持 Qwen3-VL / LLaVA 等 GGUF 量化模型
+自动检测 Qwen2-VL / Qwen3-VL / LLaVA 格式
 """
 
 import logging
@@ -35,6 +35,40 @@ class CADBLoadVisionModelGGUF:
     FUNCTION = "process"
     CATEGORY = "CADB/Model"
 
+    @classmethod
+    def _detect_model_family(cls, model_path: str) -> str:
+        """从文件名检测模型家族"""
+        name = Path(model_path).name.lower()
+        if "qwen3-vl" in name or "qwen3vl" in name:
+            return "qwen3vl"
+        if "qwen2-vl" in name or "qwen2vl" in name:
+            return "qwen2vl"
+        if "llava" in name:
+            return "llava"
+        return "llava"  # 默认
+
+    @classmethod
+    def _get_chat_handler(cls, model_family: str, mmproj_path: str):
+        """根据模型家族获取合适的 chat handler"""
+        try:
+            if model_family in ("qwen3vl", "qwen2vl"):
+                # Qwen VL 系列：尝试不同方式
+                # 方式1: 直接尝试 Qwen3VL 专用 handler
+                try:
+                    from llama_cpp.llama_chat_format import Qwen3VLChatHandler
+                    return Qwen3VLChatHandler(clip_model_path=mmproj_path, verbose=False)
+                except ImportError:
+                    pass
+                # 方式2: 回退到 Llava16
+                from llama_cpp.llama_chat_format import Llava16ChatHandler
+                return Llava16ChatHandler(clip_model_path=mmproj_path, verbose=False)
+            else:
+                from llama_cpp.llama_chat_format import Llava15ChatHandler
+                return Llava15ChatHandler(clip_model_path=mmproj_path, verbose=False)
+        except Exception as e:
+            logger.warning(f"Chat handler 创建失败: {e}")
+            raise
+
     def process(
         self,
         GGUF模型路径: str = "",
@@ -56,7 +90,9 @@ class CADBLoadVisionModelGGUF:
         if not mmproj_path or not Path(mmproj_path).exists():
             return ((None, None, {}), f"❌ 投影模型不存在: {mmproj_path}")
 
+        model_family = self._detect_model_family(model_path)
         cache_key = f"{model_path}_{mmproj_path}_{n_gpu_layers}"
+
         if cache_key in self._loaded_models:
             model = self._loaded_models[cache_key]
             info = f"✅ 缓存命中: {Path(model_path).name}"
@@ -64,11 +100,10 @@ class CADBLoadVisionModelGGUF:
 
         try:
             from llama_cpp import Llama
-            from llama_cpp.llama_chat_format import Llava15ChatHandler
 
-            logger.info(f"加载 GGUF VLM: {model_path}")
+            logger.info(f"加载 GGUF VLM [{model_family}]: {Path(model_path).name}")
 
-            mmproj = Llava15ChatHandler(clip_model_path=mmproj_path, verbose=False)
+            mmproj = self._get_chat_handler(model_family, mmproj_path)
 
             model = Llama(
                 model_path=model_path,
@@ -76,18 +111,19 @@ class CADBLoadVisionModelGGUF:
                 n_ctx=n_ctx,
                 n_gpu_layers=n_gpu_layers,
                 verbose=False,
+                logits_all=False,
+                embedding=False,
             )
 
             self._loaded_models[cache_key] = model
-            info = f"✅ 已加载: {Path(model_path).name} | GPU层:{n_gpu_layers} | ctx:{n_ctx}"
+            info = f"✅ [{model_family}] {Path(model_path).name} | GPU:{n_gpu_layers} | ctx:{n_ctx}"
 
-        except ImportError:
-            info = "❌ 请安装: pip install llama-cpp-python"
+        except ImportError as e:
+            info = f"❌ 缺少依赖: {e}"
             return ((None, None, {}), info)
         except Exception as e:
             logger.error(f"GGUF 加载失败: {e}")
-            info = f"❌ 加载失败: {e}"
-            return ((None, None, {}), info)
+            return ((None, None, {}), f"❌ 加载失败: {e}")
 
         return ((model, "gguf", {"max_tokens": max_tokens, "temperature": temperature, "mmproj": mmproj_path}), info)
 
