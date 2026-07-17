@@ -56,8 +56,8 @@
         130
       ],
       "widgets_values": [
-        "E:/ComfyUI_portable_TE_v260619/ComfyUI/models/LLM/Qwen3-VL-8B-Instruct-abliterated-v2.0.Q6_K.gguf",
-        "E:/ComfyUI_portable_TE_v260619/ComfyUI/models/LLM/Qwen3-VL-8B-Instruct-abliterated-v2.0.mmproj-f16.gguf",
+        "Qwen3-VL-8B-Instruct-abliterated-v2.0.Q6_K.gguf",
+        "Qwen3-VL-8B-Instruct-abliterated-v2.0.mmproj-f16.gguf",
         -1,
         4096,
         128,
@@ -65,12 +65,12 @@
       ],
       "inputs": [
         {
-          "name": "GGUF模型路径",
+          "name": "GGUF模型",
           "type": "STRING",
           "link": null
         },
         {
-          "name": "投影模型路径",
+          "name": "投影模型",
           "type": "STRING",
           "link": null
         },
