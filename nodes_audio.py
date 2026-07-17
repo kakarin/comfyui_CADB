@@ -5,10 +5,22 @@ ComfyUI 节点：接收视频路径 → 提取音频 → Whisper转录 → Trigg
 
 import subprocess
 import tempfile
+import shutil
 from pathlib import Path
 
 from .objects import AudioEvent
 from .utils import CacheManager, match_trigger
+
+
+def _find_ffmpeg() -> str:
+    if shutil.which("ffmpeg"): return "ffmpeg"
+    if shutil.which("ffmpeg.exe"): return "ffmpeg.exe"
+    for c in [
+        Path(__file__).resolve().parent.parent.parent / "python_embeded" / "Scripts" / "ffmpeg.exe",
+        Path(__file__).resolve().parent.parent.parent / "python_embeded" / "ffmpeg.exe",
+    ]:
+        if c.exists(): return str(c)
+    return "ffmpeg"
 
 
 class CADBAudioAnalyzer:
@@ -70,14 +82,28 @@ class CADBAudioAnalyzer:
         self.cache.set(events, path, segment_length)
 
         tag = "Whisper" if has_model else "占位"
-        return (events, f"✅ [{tag}] {len(events)} 事件")
+        dbg = f"✅ [{tag}] {len(events)} 事件"
+        if getattr(self, '_last_error', ''):
+            dbg = f"❌ {self._last_error}"
+        return (events, dbg)
 
     def _extract_audio(self, path: str) -> str:
+        ffmpeg = _find_ffmpeg()
         out = Path(tempfile.mkdtemp(prefix="cadb_aa_")) / "audio.wav"
         try:
-            subprocess.run(["ffmpeg","-y","-i",path,"-vn","-acodec","pcm_s16le","-ar","16000","-ac","1",str(out)],
-                           capture_output=True, text=True, timeout=120)
-        except: pass
+            result = subprocess.run(
+                [ffmpeg, "-y", "-i", path, "-vn", "-acodec", "pcm_s16le", "-ar", "16000", "-ac", "1", str(out)],
+                capture_output=True, text=True, timeout=120,
+            )
+            if result.returncode != 0:
+                self._last_error = f"FFmpeg 失败: {result.stderr[:200]}"
+                return ""
+        except FileNotFoundError:
+            self._last_error = f"找不到 FFmpeg ({ffmpeg})"
+            return ""
+        except Exception as e:
+            self._last_error = f"音频提取异常: {e}"
+            return ""
         return str(out)
 
     def _transcribe(self, path: str, model) -> list[dict]:

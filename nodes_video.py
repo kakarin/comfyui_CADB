@@ -6,10 +6,29 @@ ComfyUI 节点：接收视频路径 → FFmpeg抽帧 → VLM视觉分析 → Fra
 import subprocess
 import tempfile
 import json
+import shutil
 from pathlib import Path
 
 from .objects import FrameObject, FrameEvent
 from .utils import CacheManager
+
+
+def _find_ffmpeg() -> str:
+    """查找 ffmpeg 可执行文件"""
+    # 1. 系统 PATH
+    if shutil.which("ffmpeg"):
+        return "ffmpeg"
+    if shutil.which("ffmpeg.exe"):
+        return "ffmpeg.exe"
+    # 2. ComfyUI portable 常见位置
+    candidates = [
+        Path(__file__).resolve().parent.parent.parent / "python_embeded" / "Scripts" / "ffmpeg.exe",
+        Path(__file__).resolve().parent.parent.parent / "python_embeded" / "ffmpeg.exe",
+    ]
+    for c in candidates:
+        if c.exists():
+            return str(c)
+    return "ffmpeg"  # 回退，让 subprocess 报错
 
 
 class CADBVideoAnalyzer:
@@ -83,18 +102,36 @@ Return ONLY JSON: {"action": "idle", "props": [], "scene": "front_view"}"""
         self.cache.set((frame_events, ""), path, profile, vision_prompt[:100], max_fps, scene_detection)
 
         tag = "VLM" if has_model else "占位"
-        return (frame_events, f"✅ [{tag}] {len(frames)}帧→{len(frame_events)}事件")
+        dbg = f"✅ [{tag}] {len(frames)}帧→{len(frame_events)}事件"
+        if getattr(self, '_last_error', ''):
+            dbg = f"❌ {self._last_error}"
+        return (frame_events, dbg)
 
     def _extract_frames(self, path: str, fps: float, scene: bool) -> list:
+        ffmpeg = _find_ffmpeg()
         d = Path(tempfile.mkdtemp(prefix="cadb_vf_"))
         vf = f"fps={fps},scale=1280:-1"
         if scene: vf += ",select='gte(scene,0.3)'"
         try:
-            subprocess.run(["ffmpeg","-y","-i",path,"-vf",vf,"-q:v","3","-frame_pts","1",str(d/"frame_%06d.jpg")],
-                           capture_output=True, text=True, timeout=600)
-        except: pass
-        return [FrameObject(index=i, timestamp=i/max(fps,0.01), path=str(f), is_keyframe=True)
-                for i,f in enumerate(sorted(d.glob("frame_*.jpg")))]
+            result = subprocess.run(
+                [ffmpeg, "-y", "-i", path, "-vf", vf, "-q:v", "3", "-frame_pts", "1",
+                 str(d / "frame_%06d.jpg")],
+                capture_output=True, text=True, timeout=600,
+            )
+            if result.returncode != 0:
+                self._last_error = f"FFmpeg 失败: {result.stderr[:200]}"
+                return []
+        except FileNotFoundError:
+            self._last_error = f"找不到 FFmpeg ({ffmpeg})，请安装 ffmpeg"
+            return []
+        except Exception as e:
+            self._last_error = f"抽帧异常: {e}"
+            return []
+        frames = [FrameObject(index=i, timestamp=i/max(fps,0.01), path=str(f), is_keyframe=True)
+                  for i,f in enumerate(sorted(d.glob("frame_*.jpg")))]
+        if not frames:
+            self._last_error = f"抽帧结果为空 (ffmpeg={ffmpeg})"
+        return frames
 
     def _infer_frames(self, frames, vm, prompt):
         model, processor, cfg = vm
