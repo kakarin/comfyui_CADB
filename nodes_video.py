@@ -142,18 +142,23 @@ Return ONLY JSON: {"action": "idle", "props": [], "scene": "front_view"}"""
         return frames
 
     def _infer_frames(self, frames, vm, prompt):
-        model, processor, cfg = vm
-        pt, mt, temp = cfg.get("max_tokens",512), cfg.get("temperature",0.1)
+        model, backend, cfg = vm
+        mt = cfg.get("max_tokens", 512)
+        temp = cfg.get("temperature", 0.1)
         prompt = prompt or self.DEFAULT_PROMPT
         evts = []
         for f in frames:
             try:
-                e = self._infer_one(f.path, model, processor, prompt, mt, temp)
+                if backend == "gguf":
+                    e = self._infer_gguf(f.path, model, prompt, mt, temp)
+                else:
+                    e = self._infer_hf(f.path, model, backend, prompt, mt, temp)
                 e.timestamp = f.timestamp; e.frame_index = f.index; evts.append(e)
-            except: evts.append(FrameEvent(timestamp=f.timestamp, action="idle", frame_index=f.index))
+            except Exception as ex:
+                evts.append(FrameEvent(timestamp=f.timestamp, action="idle", frame_index=f.index, raw_response=f"error:{ex}"))
         return evts
 
-    def _infer_one(self, img, model, processor, prompt, mt, temp):
+    def _infer_hf(self, img, model, processor, prompt, mt, temp):
         from PIL import Image; import torch
         image = Image.open(img).convert("RGB")
         msgs = [{"role":"user","content":[{"type":"image","image":image},{"type":"text","text":prompt}]}]
@@ -165,6 +170,28 @@ Return ONLY JSON: {"action": "idle", "props": [], "scene": "front_view"}"""
             ids = model.generate(**inputs, max_new_tokens=mt, temperature=temp if temp>0 else None, do_sample=temp>0)
         ids_t = [o[len(i):] for i,o in zip(inputs["input_ids"],ids)]
         raw = processor.batch_decode(ids_t, skip_special_tokens=True)[0]
+        return self._parse(raw)
+
+    def _infer_gguf(self, img_path, model, prompt, mt, temp):
+        """GGUF (llama-cpp) VLM 推理"""
+        import base64
+        with open(img_path, "rb") as f:
+            img_b64 = base64.b64encode(f.read()).decode()
+
+        messages = [{
+            "role": "user",
+            "content": [
+                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{img_b64}"}},
+                {"type": "text", "text": prompt},
+            ]
+        }]
+
+        result = model.create_chat_completion(
+            messages=messages,
+            max_tokens=mt,
+            temperature=temp if temp > 0 else 0.0,
+        )
+        raw = result["choices"][0]["message"]["content"]
         return self._parse(raw)
 
     def _parse(self, raw):
