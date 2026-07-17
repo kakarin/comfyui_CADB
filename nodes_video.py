@@ -15,12 +15,20 @@ from .utils import CacheManager
 
 def _find_ffmpeg() -> str:
     """查找 ffmpeg 可执行文件"""
-    # 1. 系统 PATH
+    # 1. imageio_ffmpeg（ComfyUI 最常用的方式）
+    try:
+        import imageio_ffmpeg
+        path = imageio_ffmpeg.get_ffmpeg_exe()
+        if path:
+            return path
+    except Exception:
+        pass
+    # 2. 系统 PATH
     if shutil.which("ffmpeg"):
         return "ffmpeg"
     if shutil.which("ffmpeg.exe"):
         return "ffmpeg.exe"
-    # 2. ComfyUI portable 常见位置
+    # 3. ComfyUI portable 常见位置
     candidates = [
         Path(__file__).resolve().parent.parent.parent / "python_embeded" / "Scripts" / "ffmpeg.exe",
         Path(__file__).resolve().parent.parent.parent / "python_embeded" / "ffmpeg.exe",
@@ -28,7 +36,7 @@ def _find_ffmpeg() -> str:
     for c in candidates:
         if c.exists():
             return str(c)
-    return "ffmpeg"  # 回退，让 subprocess 报错
+    return "ffmpeg"
 
 
 class CADBVideoAnalyzer:

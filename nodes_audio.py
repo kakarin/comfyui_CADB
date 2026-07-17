@@ -13,6 +13,11 @@ from .utils import CacheManager, match_trigger
 
 
 def _find_ffmpeg() -> str:
+    try:
+        import imageio_ffmpeg
+        path = imageio_ffmpeg.get_ffmpeg_exe()
+        if path: return path
+    except Exception: pass
     if shutil.which("ffmpeg"): return "ffmpeg"
     if shutil.which("ffmpeg.exe"): return "ffmpeg.exe"
     for c in [
