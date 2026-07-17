@@ -1,0 +1,558 @@
+{
+  "version": 1,
+  "last_node_id": 10,
+  "last_link_id": 15,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "CADB_LoadVideo",
+      "pos": [
+        50,
+        300
+      ],
+      "size": [
+        280,
+        58
+      ],
+      "widgets_values": [
+        "38287049264-1-192.mp4"
+      ],
+      "inputs": [
+        {
+          "name": "视频文件",
+          "type": "STRING",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "视频路径",
+          "type": "STRING",
+          "links": [
+            1,
+            2
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "视频信息",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CADB_LoadVideo"
+      }
+    },
+    {
+      "id": 2,
+      "type": "CADB_LoadVisionModelGGUF",
+      "pos": [
+        50,
+        420
+      ],
+      "size": [
+        350,
+        100
+      ],
+      "widgets_values": [
+        "E:/ComfyUI_portable_TE_v260619/ComfyUI/models/LLM/Qwen3-VL-8B-Instruct-abliterated-v2.0.Q6_K.gguf",
+        "E:/ComfyUI_portable_TE_v260619/ComfyUI/models/LLM/Qwen3-VL-8B-Instruct-abliterated-v2.0.mmproj-f16.gguf",
+        -1,
+        4096,
+        256,
+        0.1
+      ],
+      "inputs": [
+        {
+          "name": "GGUF模型路径",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "投影模型路径",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "GPU层数",
+          "type": "INT",
+          "link": null
+        },
+        {
+          "name": "上下文长度",
+          "type": "INT",
+          "link": null
+        },
+        {
+          "name": "最大输出token",
+          "type": "INT",
+          "link": null
+        },
+        {
+          "name": "温度",
+          "type": "FLOAT",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "视觉模型",
+          "type": "CADB_VISION_MODEL",
+          "links": [
+            3
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "模型信息",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CADB_LoadVisionModelGGUF"
+      }
+    },
+    {
+      "id": 3,
+      "type": "CADB_LoadWhisperModel",
+      "pos": [
+        50,
+        580
+      ],
+      "size": [
+        280,
+        90
+      ],
+      "widgets_values": [
+        "large-v3",
+        "cuda",
+        "float16"
+      ],
+      "inputs": [
+        {
+          "name": "模型大小",
+          "type": "COMBO",
+          "link": null
+        },
+        {
+          "name": "设备",
+          "type": "COMBO",
+          "link": null
+        },
+        {
+          "name": "计算精度",
+          "type": "COMBO",
+          "link": null
+        },
+        {
+          "name": "语言",
+          "type": "COMBO",
+          "link": null
+        },
+        {
+          "name": "模型路径",
+          "type": "STRING",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Whisper模型",
+          "type": "CADB_WHISPER_MODEL",
+          "links": [
+            4
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "模型信息",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CADB_LoadWhisperModel"
+      }
+    },
+    {
+      "id": 4,
+      "type": "CADB_VideoAnalyzer",
+      "pos": [
+        450,
+        200
+      ],
+      "size": [
+        300,
+        150
+      ],
+      "widgets_values": [
+        "standard",
+        "",
+        2.0,
+        false,
+        true
+      ],
+      "inputs": [
+        {
+          "name": "视频路径",
+          "type": "STRING",
+          "link": 1
+        },
+        {
+          "name": "采样模式",
+          "type": "COMBO",
+          "link": null
+        },
+        {
+          "name": "视觉模型",
+          "type": "CADB_VISION_MODEL",
+          "link": 3
+        },
+        {
+          "name": "视觉提示词",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "最大帧率",
+          "type": "FLOAT",
+          "link": null
+        },
+        {
+          "name": "场景检测",
+          "type": "BOOLEAN",
+          "link": null
+        },
+        {
+          "name": "强制刷新",
+          "type": "BOOLEAN",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "帧事件",
+          "type": "CADB_FRAMEEVENTS",
+          "links": [
+            5
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "调试摘要",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CADB_VideoAnalyzer"
+      }
+    },
+    {
+      "id": 5,
+      "type": "CADB_AudioAnalyzer",
+      "pos": [
+        450,
+        450
+      ],
+      "size": [
+        280,
+        90
+      ],
+      "widgets_values": [
+        30.0,
+        true
+      ],
+      "inputs": [
+        {
+          "name": "视频路径",
+          "type": "STRING",
+          "link": 2
+        },
+        {
+          "name": "Whisper模型",
+          "type": "CADB_WHISPER_MODEL",
+          "link": 4
+        },
+        {
+          "name": "分段长度",
+          "type": "FLOAT",
+          "link": null
+        },
+        {
+          "name": "强制刷新",
+          "type": "BOOLEAN",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "音频事件",
+          "type": "CADB_AUDIOEVENTS",
+          "links": [
+            6
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "调试摘要",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CADB_AudioAnalyzer"
+      }
+    },
+    {
+      "id": 6,
+      "type": "CADB_TimelineFusion",
+      "pos": [
+        800,
+        320
+      ],
+      "size": [
+        280,
+        90
+      ],
+      "widgets_values": [
+        1.0,
+        0.0,
+        true
+      ],
+      "inputs": [
+        {
+          "name": "帧事件",
+          "type": "CADB_FRAMEEVENTS",
+          "link": 5
+        },
+        {
+          "name": "音频事件",
+          "type": "CADB_AUDIOEVENTS",
+          "link": 6
+        },
+        {
+          "name": "合并间隔",
+          "type": "FLOAT",
+          "link": null
+        },
+        {
+          "name": "最小置信度",
+          "type": "FLOAT",
+          "link": null
+        },
+        {
+          "name": "强制刷新",
+          "type": "BOOLEAN",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "时间轴",
+          "type": "CADB_TIMELINE",
+          "links": [
+            7
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "调试摘要",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CADB_TimelineFusion"
+      }
+    },
+    {
+      "id": 7,
+      "type": "CADB_KnowledgeBuilder",
+      "pos": [
+        1150,
+        320
+      ],
+      "size": [
+        280,
+        70
+      ],
+      "widgets_values": [
+        "ASMR分析",
+        true
+      ],
+      "inputs": [
+        {
+          "name": "时间轴",
+          "type": "CADB_TIMELINE",
+          "link": 7
+        },
+        {
+          "name": "视频名称",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "强制刷新",
+          "type": "BOOLEAN",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "知识对象",
+          "type": "CADB_KNOWLEDGE",
+          "links": [
+            8
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "调试摘要",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CADB_KnowledgeBuilder"
+      }
+    },
+    {
+      "id": 8,
+      "type": "CADB_ReportGenerator",
+      "pos": [
+        1500,
+        320
+      ],
+      "size": [
+        280,
+        80
+      ],
+      "widgets_values": [
+        "ASMR分析",
+        "all",
+        ""
+      ],
+      "inputs": [
+        {
+          "name": "知识对象",
+          "type": "CADB_KNOWLEDGE",
+          "link": 8
+        },
+        {
+          "name": "视频名称",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "输出格式",
+          "type": "COMBO",
+          "link": null
+        },
+        {
+          "name": "输出目录",
+          "type": "STRING",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Markdown文本",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        },
+        {
+          "name": "JSON路径",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 1
+        },
+        {
+          "name": "调试摘要",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 2
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CADB_ReportGenerator"
+      }
+    }
+  ],
+  "links": [
+    {
+      "id": 1,
+      "origin_id": 1,
+      "origin_slot": 0,
+      "target_id": 4,
+      "target_slot": 0,
+      "type": "STRING"
+    },
+    {
+      "id": 2,
+      "origin_id": 1,
+      "origin_slot": 0,
+      "target_id": 5,
+      "target_slot": 0,
+      "type": "STRING"
+    },
+    {
+      "id": 3,
+      "origin_id": 2,
+      "origin_slot": 0,
+      "target_id": 4,
+      "target_slot": 2,
+      "type": "CADB_VISION_MODEL"
+    },
+    {
+      "id": 4,
+      "origin_id": 3,
+      "origin_slot": 0,
+      "target_id": 5,
+      "target_slot": 1,
+      "type": "CADB_WHISPER_MODEL"
+    },
+    {
+      "id": 5,
+      "origin_id": 4,
+      "origin_slot": 0,
+      "target_id": 6,
+      "target_slot": 0,
+      "type": "CADB_FRAMEEVENTS"
+    },
+    {
+      "id": 6,
+      "origin_id": 5,
+      "origin_slot": 0,
+      "target_id": 6,
+      "target_slot": 1,
+      "type": "CADB_AUDIOEVENTS"
+    },
+    {
+      "id": 7,
+      "origin_id": 6,
+      "origin_slot": 0,
+      "target_id": 7,
+      "target_slot": 0,
+      "type": "CADB_TIMELINE"
+    },
+    {
+      "id": 8,
+      "origin_id": 7,
+      "origin_slot": 0,
+      "target_id": 8,
+      "target_slot": 0,
+      "type": "CADB_KNOWLEDGE"
+    }
+  ]
+}
