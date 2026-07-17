@@ -117,7 +117,20 @@ class CADBAudioAnalyzer:
 
         try:
             if backend == "openai":
-                result = model.transcribe(path, language=None, fp16=True)
+                # openai-whisper 内部需要ffmpeg，找不到就手动加载音频
+                import numpy as np
+                try:
+                    import soundfile as sf
+                    audio_np, sr = sf.read(path)
+                except ImportError:
+                    import wave
+                    with wave.open(path, 'rb') as wf:
+                        sr = wf.getframerate()
+                        frames = wf.readframes(wf.getnframes())
+                        audio_np = np.frombuffer(frames, dtype=np.int16).astype(np.float32) / 32768.0
+                if audio_np.ndim > 1:
+                    audio_np = audio_np.mean(axis=1)
+                result = model.transcribe(audio_np, language=None, fp16=True)
                 segments = result.get("segments", [])
             else:
                 segments_iter, info = model.transcribe(path, beam_size=5, vad_filter=True)
