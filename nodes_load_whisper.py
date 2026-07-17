@@ -1,7 +1,7 @@
 """
 🎙️ CADB Whisper 模型加载
 ComfyUI 节点：加载本地 Whisper 模型 → 输出给音频分析节点
-使用 faster-whisper（比原版 whisper 快 4 倍，内存更低）
+优先 faster-whisper，回退 openai-whisper
 """
 
 import logging
@@ -51,44 +51,45 @@ class CADBLoadWhisperModel:
         cache_key = f"{model_size}_{device}_{compute_type}_{custom_path}"
 
         if cache_key in self._loaded_models:
-            model = self._loaded_models[cache_key]
-            info = f"✅ 缓存命中: {model_size}"
-            return (model, info)
+            model, backend = self._loaded_models[cache_key]
+            return ((model, backend), f"✅ 缓存命中: {model_size}")
 
-        # ─── 加载模型 ───
+        # 确定路径
+        if custom_path and Path(custom_path).exists():
+            model_path = custom_path
+        else:
+            model_path = model_size
+
+        device_str = "cuda" if device in ("cuda", "auto") else "cpu"
+
+        # 1. 尝试 faster-whisper
         try:
             from faster_whisper import WhisperModel
-
-            # 确定模型：优先本地路径 → 自动下载
-            if custom_path and Path(custom_path).exists():
-                model_path = custom_path
-            else:
-                model_path = model_size  # faster-whisper 会自动下载
-
-            # 设备判断
-            device_str = "cuda" if device == "cuda" else ("cuda" if device == "auto" else "cpu")
-
-            logger.info(f"加载 Whisper: {model_path} ({device_str}, {compute_type})")
-
-            model = WhisperModel(
-                model_path,
-                device=device_str,
-                compute_type=compute_type,
-                download_root=custom_path if custom_path else None,
-            )
-
-            self._loaded_models[cache_key] = model
-            info = f"✅ 已加载: {model_size} | {device_str} | {compute_type}"
-
+            logger.info(f"加载 Whisper (faster): {model_path}")
+            model = WhisperModel(model_path, device=device_str, compute_type=compute_type,
+                                 download_root=custom_path if custom_path else None)
+            self._loaded_models[cache_key] = (model, "faster")
+            info = f"✅ faster-whisper: {model_size} | {device_str}"
+            return ((model, "faster"), info)
         except ImportError:
-            info = "❌ 请安装 faster-whisper: pip install faster-whisper"
-            return (None, info)
+            pass
+        except Exception as e:
+            logger.warning(f"faster-whisper 失败: {e}")
+
+        # 2. 回退 openai-whisper
+        try:
+            import whisper
+            logger.info(f"加载 Whisper (openai): {model_path}")
+            model = whisper.load_model(model_path, device=device_str)
+            self._loaded_models[cache_key] = (model, "openai")
+            info = f"✅ openai-whisper: {model_size} | {device_str}"
+            return ((model, "openai"), info)
+        except ImportError:
+            info = "❌ 请安装: pip install faster-whisper 或 openai-whisper"
+            return ((None, "none"), info)
         except Exception as e:
             logger.error(f"Whisper 加载失败: {e}")
-            info = f"❌ 加载失败: {e}"
-            return (None, info)
-
-        return (model, info)
+            return ((None, "none"), f"❌ 加载失败: {e}")
 
     @classmethod
     def clear_cache(cls):

@@ -111,9 +111,24 @@ class CADBAudioAnalyzer:
             return ""
         return str(out)
 
-    def _transcribe(self, path: str, model) -> list[dict]:
-        segments, _ = model.transcribe(path, beam_size=5, vad_filter=True)
-        return [{"start":s.start,"end":s.end,"text":s.text.strip()} for s in segments]
+    def _transcribe(self, path: str, model_tuple) -> list[dict]:
+        """转录：支持 faster-whisper 和 openai-whisper"""
+        model, backend = model_tuple if isinstance(model_tuple, tuple) else (model_tuple, "faster")
+
+        try:
+            if backend == "openai":
+                result = model.transcribe(path, language=None, fp16=True)
+                segments = result.get("segments", [])
+            else:
+                segments_iter, info = model.transcribe(path, beam_size=5, vad_filter=True)
+                segments = list(segments_iter)
+        except Exception as e:
+            raise RuntimeError(f"Whisper 转录失败: {e}")
+
+        return [{"start": s.start if hasattr(s, 'start') else s.get("start", 0),
+                 "end": s.end if hasattr(s, 'end') else s.get("end", 0),
+                 "text": (s.text if hasattr(s, 'text') else s.get("text", "")).strip()}
+                for s in segments]
 
     def _classify_triggers(self, segments: list[dict]) -> list:
         evts = []
