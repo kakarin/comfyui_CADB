@@ -200,8 +200,8 @@ Return ONLY JSON: {"action": "idle", "props": [], "scene": "front_view"}"""
         elif "```" in raw: js = raw.split("```")[1].split("```")[0]
         elif "{" in raw: js = raw[raw.index("{"):raw.rindex("}")+1]
         try: d = json.loads(js.strip())
-        except: return FrameEvent(action="idle", raw_response=raw)
-        return FrameEvent(action=d.get("action","idle"), action_confidence=d.get("action_confidence",0.8),
+        except: return FrameEvent(timestamp=0, action="idle", raw_response=raw)
+        return FrameEvent(timestamp=0, action=d.get("action","idle"), action_confidence=d.get("action_confidence",0.8),
                           props=d.get("props",[]), scene=d.get("scene","front_view"),
                           tags=d.get("tags",[]), raw_response=raw)
 
