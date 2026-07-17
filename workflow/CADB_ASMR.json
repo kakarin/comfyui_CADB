@@ -1,7 +1,6 @@
 {
-  "version": 1,
-  "last_node_id": 10,
-  "last_link_id": 15,
+  "last_node_id": 8,
+  "last_link_id": 8,
   "nodes": [
     {
       "id": 1,
@@ -53,15 +52,15 @@
         420
       ],
       "size": [
-        350,
-        100
+        370,
+        110
       ],
       "widgets_values": [
         "E:/ComfyUI_portable_TE_v260619/ComfyUI/models/LLM/Qwen3-VL-8B-Instruct-abliterated-v2.0.Q6_K.gguf",
         "E:/ComfyUI_portable_TE_v260619/ComfyUI/models/LLM/Qwen3-VL-8B-Instruct-abliterated-v2.0.mmproj-f16.gguf",
         -1,
         4096,
-        256,
+        128,
         0.1
       ],
       "inputs": [
@@ -104,12 +103,6 @@
             3
           ],
           "slot_index": 0
-        },
-        {
-          "name": "模型信息",
-          "type": "STRING",
-          "links": null,
-          "slot_index": 1
         }
       ],
       "properties": {
@@ -132,33 +125,6 @@
         "cuda",
         "float16"
       ],
-      "inputs": [
-        {
-          "name": "模型大小",
-          "type": "COMBO",
-          "link": null
-        },
-        {
-          "name": "设备",
-          "type": "COMBO",
-          "link": null
-        },
-        {
-          "name": "计算精度",
-          "type": "COMBO",
-          "link": null
-        },
-        {
-          "name": "语言",
-          "type": "COMBO",
-          "link": null
-        },
-        {
-          "name": "模型路径",
-          "type": "STRING",
-          "link": null
-        }
-      ],
       "outputs": [
         {
           "name": "Whisper模型",
@@ -167,12 +133,6 @@
             4
           ],
           "slot_index": 0
-        },
-        {
-          "name": "模型信息",
-          "type": "STRING",
-          "links": null,
-          "slot_index": 1
         }
       ],
       "properties": {
@@ -183,7 +143,7 @@
       "id": 4,
       "type": "CADB_VideoAnalyzer",
       "pos": [
-        450,
+        470,
         200
       ],
       "size": [
@@ -193,7 +153,7 @@
       "widgets_values": [
         "standard",
         "",
-        2.0,
+        1.0,
         false,
         true
       ],
@@ -204,34 +164,9 @@
           "link": 1
         },
         {
-          "name": "采样模式",
-          "type": "COMBO",
-          "link": null
-        },
-        {
           "name": "视觉模型",
           "type": "CADB_VISION_MODEL",
           "link": 3
-        },
-        {
-          "name": "视觉提示词",
-          "type": "STRING",
-          "link": null
-        },
-        {
-          "name": "最大帧率",
-          "type": "FLOAT",
-          "link": null
-        },
-        {
-          "name": "场景检测",
-          "type": "BOOLEAN",
-          "link": null
-        },
-        {
-          "name": "强制刷新",
-          "type": "BOOLEAN",
-          "link": null
         }
       ],
       "outputs": [
@@ -242,12 +177,6 @@
             5
           ],
           "slot_index": 0
-        },
-        {
-          "name": "调试摘要",
-          "type": "STRING",
-          "links": null,
-          "slot_index": 1
         }
       ],
       "properties": {
@@ -258,7 +187,7 @@
       "id": 5,
       "type": "CADB_AudioAnalyzer",
       "pos": [
-        450,
+        470,
         450
       ],
       "size": [
@@ -279,16 +208,6 @@
           "name": "Whisper模型",
           "type": "CADB_WHISPER_MODEL",
           "link": 4
-        },
-        {
-          "name": "分段长度",
-          "type": "FLOAT",
-          "link": null
-        },
-        {
-          "name": "强制刷新",
-          "type": "BOOLEAN",
-          "link": null
         }
       ],
       "outputs": [
@@ -299,12 +218,6 @@
             6
           ],
           "slot_index": 0
-        },
-        {
-          "name": "调试摘要",
-          "type": "STRING",
-          "links": null,
-          "slot_index": 1
         }
       ],
       "properties": {
@@ -315,7 +228,7 @@
       "id": 6,
       "type": "CADB_TimelineFusion",
       "pos": [
-        800,
+        820,
         320
       ],
       "size": [
@@ -337,21 +250,6 @@
           "name": "音频事件",
           "type": "CADB_AUDIOEVENTS",
           "link": 6
-        },
-        {
-          "name": "合并间隔",
-          "type": "FLOAT",
-          "link": null
-        },
-        {
-          "name": "最小置信度",
-          "type": "FLOAT",
-          "link": null
-        },
-        {
-          "name": "强制刷新",
-          "type": "BOOLEAN",
-          "link": null
         }
       ],
       "outputs": [
@@ -362,12 +260,6 @@
             7
           ],
           "slot_index": 0
-        },
-        {
-          "name": "调试摘要",
-          "type": "STRING",
-          "links": null,
-          "slot_index": 1
         }
       ],
       "properties": {
@@ -386,7 +278,7 @@
         70
       ],
       "widgets_values": [
-        "ASMR分析",
+        "",
         true
       ],
       "inputs": [
@@ -394,16 +286,6 @@
           "name": "时间轴",
           "type": "CADB_TIMELINE",
           "link": 7
-        },
-        {
-          "name": "视频名称",
-          "type": "STRING",
-          "link": null
-        },
-        {
-          "name": "强制刷新",
-          "type": "BOOLEAN",
-          "link": null
         }
       ],
       "outputs": [
@@ -414,12 +296,6 @@
             8
           ],
           "slot_index": 0
-        },
-        {
-          "name": "调试摘要",
-          "type": "STRING",
-          "links": null,
-          "slot_index": 1
         }
       ],
       "properties": {
@@ -438,7 +314,7 @@
         80
       ],
       "widgets_values": [
-        "ASMR分析",
+        "",
         "all",
         ""
       ],
@@ -447,21 +323,6 @@
           "name": "知识对象",
           "type": "CADB_KNOWLEDGE",
           "link": 8
-        },
-        {
-          "name": "视频名称",
-          "type": "STRING",
-          "link": null
-        },
-        {
-          "name": "输出格式",
-          "type": "COMBO",
-          "link": null
-        },
-        {
-          "name": "输出目录",
-          "type": "STRING",
-          "link": null
         }
       ],
       "outputs": [
@@ -470,18 +331,6 @@
           "type": "STRING",
           "links": null,
           "slot_index": 0
-        },
-        {
-          "name": "JSON路径",
-          "type": "STRING",
-          "links": null,
-          "slot_index": 1
-        },
-        {
-          "name": "调试摘要",
-          "type": "STRING",
-          "links": null,
-          "slot_index": 2
         }
       ],
       "properties": {
