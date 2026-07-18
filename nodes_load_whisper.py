@@ -56,6 +56,15 @@ class CADBLoadWhisperModel:
                 return str(candidate)
         return ""
 
+    @classmethod
+    def _get_models_whisper_dir(cls) -> str:
+        """获取 ComfyUI/models/whisper/ 目录"""
+        try:
+            from folder_paths import models_dir
+            return str(Path(models_dir) / "whisper")
+        except Exception:
+            return str(Path(__file__).resolve().parent.parent.parent / "models" / "whisper")
+
     def process(
         self,
         模型大小: str = "large-v3-turbo",
@@ -80,8 +89,10 @@ class CADBLoadWhisperModel:
         # 1. faster-whisper（传模型名，自动下载CTranslate2格式）
         try:
             from faster_whisper import WhisperModel
-            logger.info(f"加载 faster-whisper: {model_size}")
-            model = WhisperModel(model_size, device=device_str, compute_type=compute_type)
+            whisper_dir = self._get_models_whisper_dir()
+            logger.info(f"加载 faster-whisper: {model_size} → {whisper_dir}")
+            model = WhisperModel(model_size, device=device_str, compute_type=compute_type,
+                                 download_root=whisper_dir)
             self._loaded_models[cache_key] = (model, "faster")
             tag = "本地" if local_pt else "下载"
             info = f"✅ faster-whisper [{tag}]: {model_size} | {device_str} | {compute_type}"
